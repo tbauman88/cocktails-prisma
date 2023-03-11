@@ -14,7 +14,11 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@api/*": ["apps/api/src/app/*"],
+      "@services/*": ["apps/api/src/app/services/*"],
+      "@controllers/*": ["apps/api/src/app/controllers/*"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
