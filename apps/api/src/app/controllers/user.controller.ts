@@ -17,7 +17,7 @@ export class UserController {
     return this.userService.index({})
   }
 
-  @Post('user')
+  @Post('user/signup')
   async createUser(@Body() data: Prisma.UserCreateInput): Promise<User> {
     return this.userService.create(data)
   }
