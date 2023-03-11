@@ -8,7 +8,7 @@ export class DrinkController {
 
   @Get('drinks')
   async drinks(): Promise<Drink[]> {
-    return this.drinkService.index()
+    return this.drinkService.index({})
   }
 
   @Get('drink/:id')
