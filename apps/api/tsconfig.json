@@ -12,7 +12,6 @@
   ],
   "compilerOptions": {
     "esModuleInterop": true,
-    "baseUrl": "",
     "paths": {
       "@api/*": ["src/app/*"],
       "@services/*": ["src/app/services/*"],
