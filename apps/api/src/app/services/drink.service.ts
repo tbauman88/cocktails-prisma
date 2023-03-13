@@ -9,6 +9,21 @@ type DrinkWithIngredients = Drink & {
   }[]
 }
 
+type Ingredient = {
+  id: string
+  name: string
+  amount: string
+  amount_unit: string
+}
+
+export class CreateDrinkDto {
+  name: string
+  description?: string
+  published?: boolean
+  userId: string
+  ingredients: Ingredient[]
+}
+
 @Injectable()
 export class DrinkService {
   private includeIngredients = {
@@ -70,8 +85,20 @@ export class DrinkService {
     }
   }
 
-  async create(data: Prisma.DrinkCreateInput): Promise<Drink> {
-    return this.prisma.drink.create({ data })
+  async create(data: CreateDrinkDto): Promise<Drink> {
+    const { name, description, ingredients, userId } = data
+
+    return await this.prisma.drink.create({
+      data: {
+        name,
+        description,
+        user: { connect: { id: userId } },
+        ingredients: {
+          create: await this.upsertIngredients(ingredients)
+        }
+      },
+      include: { ingredients: true }
+    })
   }
 
   async update(params: {
@@ -84,5 +111,27 @@ export class DrinkService {
 
   async delete(where: Prisma.DrinkWhereUniqueInput): Promise<Drink> {
     return this.prisma.drink.delete({ where })
+  }
+
+  private async upsertIngredients(
+    ingredients: Ingredient[]
+  ): Promise<Prisma.IngredientOnDrinkCreateWithoutDrinkInput[]> {
+    return await Promise.all(
+      ingredients.map(async (ingredient) => {
+        const { name, amount, amount_unit } = ingredient
+
+        const { id } = await this.prisma.ingredient.upsert({
+          where: { name },
+          create: { name },
+          update: {}
+        })
+
+        return {
+          amount,
+          amount_unit,
+          ingredient: { connect: { id } }
+        }
+      })
+    )
   }
 }

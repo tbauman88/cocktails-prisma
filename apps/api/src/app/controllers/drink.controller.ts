@@ -9,7 +9,8 @@ import {
   Query
 } from '@nestjs/common'
 import { Drink, Prisma } from '@prisma/client'
-import { DrinkService } from '@services/drink.service'
+import { CreateDrinkDto, DrinkService } from '@services/drink.service'
+import { json } from 'react-router-dom'
 
 @Controller()
 export class DrinkController {
@@ -38,7 +39,7 @@ export class DrinkController {
   }
 
   @Post('drink')
-  async createDrink(@Body() data: Prisma.DrinkCreateInput): Promise<Drink> {
+  async createDrink(@Body() data: CreateDrinkDto): Promise<Drink> {
     return this.drinkService.create(data)
   }
 
