@@ -1,5 +1,14 @@
-import { Controller, Get, Param, Query } from '@nestjs/common'
-import { Drink } from '@prisma/client'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query
+} from '@nestjs/common'
+import { Drink, Prisma } from '@prisma/client'
 import { DrinkService } from '@services/drink.service'
 
 @Controller()
@@ -26,5 +35,23 @@ export class DrinkController {
   @Get('drink/:id')
   async getDrinkById(@Param('id') id: string): Promise<Drink | null> {
     return this.drinkService.show({ id })
+  }
+
+  @Post('drink')
+  async createDrink(@Body() data: Prisma.DrinkCreateInput): Promise<Drink> {
+    return this.drinkService.create(data)
+  }
+
+  @Put('drink/:id')
+  async updateDrink(
+    @Param('id') id: string,
+    @Body() data: Prisma.DrinkUpdateInput
+  ): Promise<Drink> {
+    return this.drinkService.update({ where: { id }, data })
+  }
+
+  @Delete('drink/:id')
+  async deleteDrink(@Param('id') id: string): Promise<Drink> {
+    return this.drinkService.delete({ id })
   }
 }

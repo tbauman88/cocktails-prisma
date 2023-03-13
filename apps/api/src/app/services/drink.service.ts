@@ -69,4 +69,20 @@ export class DrinkService {
       )
     }
   }
+
+  async create(data: Prisma.DrinkCreateInput): Promise<Drink> {
+    return this.prisma.drink.create({ data })
+  }
+
+  async update(params: {
+    where: Prisma.DrinkWhereUniqueInput
+    data: Prisma.DrinkUpdateInput
+  }): Promise<Drink> {
+    const { where, data } = params
+    return this.prisma.drink.update({ data, where })
+  }
+
+  async delete(where: Prisma.DrinkWhereUniqueInput): Promise<Drink> {
+    return this.prisma.drink.delete({ where })
+  }
 }
