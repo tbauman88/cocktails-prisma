@@ -42,10 +42,12 @@ export class DrinkService {
 
     return drinks.map((drink) => ({
       ...drink,
-      ingredients: drink.ingredients.map((parent) => ({
-        name: parent.ingredient.name,
-        amount: `${parent.amount}${parent.amount_unit}`
-      }))
+      ingredients: drink.ingredients.map(
+        ({ amount, amount_unit, ingredient }) => ({
+          name: ingredient.name,
+          amount: `${amount} ${amount_unit}`
+        })
+      )
     }))
   }
 
@@ -59,10 +61,12 @@ export class DrinkService {
 
     return {
       ...drink,
-      ingredients: drink.ingredients.map((parent) => ({
-        name: parent.ingredient.name,
-        amount: `${parent.amount}${parent.amount_unit}`
-      }))
+      ingredients: drink.ingredients.map(
+        ({ amount, amount_unit, ingredient }) => ({
+          name: ingredient.name,
+          amount: `${amount} ${amount_unit}`
+        })
+      )
     }
   }
 }

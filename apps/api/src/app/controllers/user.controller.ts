@@ -1,4 +1,4 @@
-import { Body, Delete, Post, Put } from '@nestjs/common'
+import { Body, Delete, Post, Put, Query } from '@nestjs/common'
 import { Controller, Get, Param } from '@nestjs/common'
 import { Prisma, User } from '@prisma/client'
 import { UserService } from '../services/user.service'
@@ -7,14 +7,19 @@ import { UserService } from '../services/user.service'
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get('user/:id')
-  async getUserById(@Param('id') id: string): Promise<User> {
-    return this.userService.show({ id })
+  @Get('users')
+  async getUsers(
+    @Query('orderBy') orderBy?: 'asc' | 'desc'
+  ): Promise<User[] | null> {
+    return this.userService.index({
+      include: { drinks: true },
+      orderBy: { name: orderBy }
+    })
   }
 
-  @Get('users')
-  async getUsers(): Promise<User[]> {
-    return this.userService.index({})
+  @Get('user/:id')
+  async getUserById(@Param('id') id: string): Promise<User | null> {
+    return this.userService.show({ id })
   }
 
   @Post('user/signup')
