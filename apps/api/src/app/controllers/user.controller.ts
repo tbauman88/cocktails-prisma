@@ -1,13 +1,24 @@
-import { Body, Delete, Post, Put, Query } from '@nestjs/common'
-import { Controller, Get, Param } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Query
+} from '@nestjs/common'
 import { Prisma, User } from '@prisma/client'
-import { UserService } from '../services/user.service'
+import { UserService } from '@services/user.service'
 
 @Controller()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('users')
+  @HttpCode(HttpStatus.OK)
   async getUsers(
     @Query('orderBy') orderBy?: 'asc' | 'desc'
   ): Promise<User[] | null> {
@@ -36,7 +47,11 @@ export class UserController {
   }
 
   @Delete('user/:id')
-  async deleteUser(@Param('id') id: string): Promise<User> {
-    return this.userService.delete({ id })
+  async deleteUser(@Param('id') id: string): Promise<{ message: string }> {
+    const deleted = this.userService.delete({ id })
+
+    if (deleted) {
+      return { message: `User: ${id} was deleted successfully` }
+    }
   }
 }
