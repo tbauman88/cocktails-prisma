@@ -29,31 +29,16 @@ services:
     networks:
       - cocktails
 
-  # redis:
-  #   container_name: cocktails-redis
-  #   image: redis:latest
-  #   ports:
-  #     - 6379:6379
-  #   volumes:
-  #     - redis:/data
-  #   networks:
-  #     - cocktails
-
   api:
     image: api
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@192.168.32.3:5432/${POSTGRES_DB}?schema=public
+      DATABASE_URL: postgresql://tylerbauman:password@localhost:5432/cocktails?schema=public
     ports:
-      - '8081:3333'
+      - '3333:3333'
     depends_on:
       - db
-
-  # client:
-  #   image: html
-  #   environment:
-  #     - apiPath=http://api:3333
-  #   ports:
-  #     - '8080:3334'
+    networks:
+      - cocktails
 
 networks:
   cocktails:
@@ -61,4 +46,3 @@ networks:
 volumes:
   postgres:
   postgres_test:
-  redis:
