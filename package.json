@@ -2,13 +2,17 @@
   "name": "cocktails",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
+  },
   "private": true,
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",
+    "@nestjs/config": "^2.3.1",
     "@nestjs/core": "^9.0.0",
     "@nestjs/platform-express": "^9.0.0",
     "@prisma/client": "^4.10.1",
@@ -37,7 +41,7 @@
     "@nrwl/webpack": "15.8.5",
     "@nrwl/workspace": "15.8.5",
     "@testing-library/react": "14.0.0",
-    "@types/jest": "^29.4.0",
+    "@types/jest": "^29.4.1",
     "@types/node": "18.14.2",
     "@types/react": "18.0.28",
     "@types/react-dom": "18.0.11",
@@ -49,6 +53,7 @@
     "@vitest/coverage-c8": "~0.25.8",
     "@vitest/ui": "^0.25.8",
     "cypress": "^12.2.0",
+    "dotenv-cli": "^7.1.0",
     "eslint": "~8.15.0",
     "eslint-config-prettier": "8.1.0",
     "eslint-plugin-cypress": "^2.10.3",
