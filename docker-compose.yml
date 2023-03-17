@@ -4,10 +4,18 @@ services:
   db:
     image: postgres:13
     container_name: cocktails-db
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      PGDATA: /data/postgres
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
       - '5432:5432'
     volumes:
@@ -18,6 +26,8 @@ services:
   db_test:
     image: postgres:13
     container_name: cocktails-db-testing
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -32,11 +42,12 @@ services:
   api:
     image: api
     environment:
-      DATABASE_URL: postgresql://tylerbauman:password@localhost:5432/cocktails?schema=public
+      DATABASE_URL: postgresql://tylerbauman:password@db:5432/cocktails?schema=public
     ports:
       - '3333:3333'
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - cocktails
 
