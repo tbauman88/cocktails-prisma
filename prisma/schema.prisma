@@ -57,6 +57,7 @@ model IngredientOnDrink {
   ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
   amount       String     @db.Text
   amount_unit  String     @db.Text
+  brand        String?
   drinkId      String
   ingredientId String
 }
