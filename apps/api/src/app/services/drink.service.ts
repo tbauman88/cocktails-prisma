@@ -68,11 +68,15 @@ export class DrinkService {
 
   async show(
     drinkWhereUniqueInput: Prisma.DrinkWhereUniqueInput
-  ): Promise<DrinkWithIngredients | null> {
+  ): Promise<DrinkWithIngredients | string> {
     const drink = await this.prisma.drink.findUnique({
       where: drinkWhereUniqueInput,
       include: this.includeIngredients
     })
+
+    if (!drink) {
+      return `Drink: ${drinkWhereUniqueInput.id} doesn't exist`
+    }
 
     return {
       ...drink,

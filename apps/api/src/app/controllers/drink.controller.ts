@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common'
 import { Drink, Prisma } from '@prisma/client'
 import { CreateDrinkDto, DrinkService } from '@services/drink.service'
-import { json } from 'react-router-dom'
 
 @Controller()
 export class DrinkController {
@@ -34,7 +33,7 @@ export class DrinkController {
   }
 
   @Get('drink/:id')
-  async getDrinkById(@Param('id') id: string): Promise<Drink | null> {
+  async getDrinkById(@Param('id') id: string): Promise<Drink | string> {
     return this.drinkService.show({ id })
   }
 
