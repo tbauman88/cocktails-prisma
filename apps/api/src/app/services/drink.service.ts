@@ -13,7 +13,9 @@ type Ingredient = {
   id: string
   name: string
   amount: string
-  amount_unit: string
+  amount_unit?: string
+  brand?: string
+  garnish?: boolean
 }
 
 export class CreateDrinkDto {
@@ -74,9 +76,9 @@ export class DrinkService {
       include: this.includeIngredients
     })
 
-    if (!drink) {
-      return `Drink: ${drinkWhereUniqueInput.id} doesn't exist`
-    }
+    if (!drink) return `Drink with ID ${drinkWhereUniqueInput.id} not found.`
+
+    if (drink.deletedAt) return `${drink.name} drink has been deleted.`
 
     return {
       ...drink,
@@ -110,7 +112,11 @@ export class DrinkService {
     data: Prisma.DrinkUpdateInput
   }): Promise<Drink> {
     const { where, data } = params
-    return this.prisma.drink.update({ data, where })
+    return this.prisma.drink.update({
+      where,
+      data,
+      include: { ingredients: true }
+    })
   }
 
   async delete(where: Prisma.DrinkWhereUniqueInput): Promise<Drink> {
@@ -122,17 +128,17 @@ export class DrinkService {
   ): Promise<Prisma.IngredientOnDrinkCreateWithoutDrinkInput[]> {
     return await Promise.all(
       ingredients.map(async (ingredient) => {
-        const { name, amount, amount_unit } = ingredient
-
         const { id } = await this.prisma.ingredient.upsert({
-          where: { name },
-          create: { name },
+          where: { name: ingredient.name },
+          create: { name: ingredient.name },
           update: {}
         })
 
         return {
-          amount,
-          amount_unit,
+          amount: ingredient.amount,
+          amount_unit: ingredient.amount_unit || null,
+          brand: ingredient.brand || null,
+          garnish: ingredient.garnish || false,
           ingredient: { connect: { id } }
         }
       })

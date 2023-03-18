@@ -28,7 +28,7 @@ export class DrinkController {
       skip: Number(skip) || undefined,
       take: Number(take) || undefined,
       orderBy: { name: orderBy },
-      where: { ...or }
+      where: { ...or, deletedAt: null }
     })
   }
 
