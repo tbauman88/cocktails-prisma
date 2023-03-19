@@ -29,7 +29,8 @@ export class IngredientService {
       orderBy,
       include: {
         drinks: {
-          select: { drink: { select: { id: true, name: true } } }
+          select: { drink: { select: { id: true, name: true } } },
+          where: { drink: { deletedAt: null } }
         }
       }
     })
@@ -48,7 +49,12 @@ export class IngredientService {
   ): Promise<IngredientWithDrinks | null> {
     const ingredient = await this.prisma.ingredient.findUnique({
       where: whereUniqueInput,
-      include: { drinks: { select: { drink: true } } }
+      include: {
+        drinks: {
+          select: { drink: { select: { id: true, name: true } } },
+          where: { drink: { deletedAt: null } }
+        }
+      }
     })
 
     return {
