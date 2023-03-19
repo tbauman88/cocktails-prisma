@@ -19,10 +19,12 @@ type Ingredient = {
 }
 
 export class CreateDrinkDto {
-  name: string
-  description?: string
-  published?: boolean
   userId: string
+  name: string
+  directions?: string
+  serves?: number
+  notes?: string
+  published?: boolean
   ingredients: Ingredient[]
 }
 
@@ -92,12 +94,14 @@ export class DrinkService {
   }
 
   async create(data: CreateDrinkDto): Promise<Drink> {
-    const { name, description, ingredients, userId } = data
+    const { userId, name, directions, serves, notes, ingredients } = data
 
     return await this.prisma.drink.create({
       data: {
         name,
-        description,
+        directions,
+        serves,
+        notes,
         user: { connect: { id: userId } },
         ingredients: {
           create: await this.upsertIngredients(ingredients)
