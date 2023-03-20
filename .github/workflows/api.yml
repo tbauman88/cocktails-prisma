@@ -9,10 +9,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node: [14, 16, 18]
-
     env:
       TOKEN_SECRET: secret
       GITHUB_CLIENT_ID: clientId
@@ -28,9 +24,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 18
           cache: 'npm'
-          cache-dependency-path: subdir/package-lock.json
 
       - name: Run npm intsall
         run: npm install
