@@ -6,6 +6,7 @@ type DrinkWithIngredients = Drink & {
   ingredients: {
     name: string
     amount: string
+    amount_unit: string
   }[]
 }
 
@@ -35,7 +36,9 @@ export class DrinkService {
       select: {
         ingredient: true,
         amount: true,
-        amount_unit: true
+        amount_unit: true,
+        brand: true,
+        garnish: true
       }
     }
   }
@@ -61,12 +64,9 @@ export class DrinkService {
 
     return drinks.map((drink) => ({
       ...drink,
-      ingredients: drink.ingredients.map(
-        ({ amount, amount_unit, ingredient }) => ({
-          name: ingredient.name,
-          amount: `${amount} ${amount_unit}`
-        })
-      )
+      ingredients: drink.ingredients.map(({ ingredient }) => ({
+        name: ingredient.name
+      }))
     }))
   }
 
@@ -85,10 +85,14 @@ export class DrinkService {
     return {
       ...drink,
       ingredients: drink.ingredients.map(
-        ({ amount, amount_unit, ingredient }) => ({
-          name: ingredient.name,
-          amount: `${amount} ${amount_unit}`
-        })
+        ({ amount, amount_unit, ingredient, brand, garnish }) => {
+          const name = brand ?? ingredient.name
+          return {
+            name: garnish ? `${name} (for garnish)` : name,
+            amount,
+            amount_unit: amount_unit ?? ''
+          }
+        }
       )
     }
   }
