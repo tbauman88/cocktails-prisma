@@ -7,10 +7,6 @@ on:
 
 jobs:
   test:
-    strategy:
-      matrix:
-        node: [14, 16, 18]
-
     runs-on: ubuntu-latest
 
     steps:
@@ -19,7 +15,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 18
           cache: 'npm'
 
       - name: Run npm intsall
