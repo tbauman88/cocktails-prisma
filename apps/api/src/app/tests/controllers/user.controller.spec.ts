@@ -19,7 +19,7 @@ describe('UserController', () => {
     service = module.get<UserService>(UserService)
   })
 
-  const users: User[] = [
+  const users: Pick<User, 'id' | 'name' | 'email' | 'role'>[] = [
     {
       id: faker.datatype.uuid(),
       name: faker.name.fullName({ firstName: 'Steve', lastName: 'French' }),
@@ -37,13 +37,13 @@ describe('UserController', () => {
   const [user] = users
 
   it('should return an array of users', async () => {
-    jest.spyOn(service, 'index').mockResolvedValue(users)
+    jest.spyOn(service, 'index').mockResolvedValue(users as User[])
 
     expect(await controller.getUsers()).toEqual(users)
   })
 
   it('should return a user', async () => {
-    jest.spyOn(service, 'show').mockResolvedValue(user)
+    jest.spyOn(service, 'show').mockResolvedValue(user as User)
 
     expect(await controller.getUserById(user.id)).toEqual(user)
   })
@@ -65,7 +65,7 @@ describe('UserController', () => {
 
   it('should update a user', async () => {
     const updatedUser = { ...user, role: Role.ADMIN }
-    jest.spyOn(service, 'update').mockResolvedValue(updatedUser)
+    jest.spyOn(service, 'update').mockResolvedValue(updatedUser as User)
 
     const result = await controller.updateUser(user.id, updatedUser)
 
@@ -77,11 +77,12 @@ describe('UserController', () => {
   })
 
   it('should delete a user', async () => {
-    jest.spyOn(service, 'delete').mockResolvedValue(user)
-    await controller.deleteUser(user.id)
+    jest.spyOn(service, 'delete').mockResolvedValue(user as User)
 
-    expect(await service.delete).toEqual(
-      `User: ${user.id} was deleted successfully`
+    expect(await controller.deleteUser(user.id)).toEqual(
+      expect.objectContaining({
+        message: `User: ${user.id} was deleted successfully`
+      })
     )
   })
 })
