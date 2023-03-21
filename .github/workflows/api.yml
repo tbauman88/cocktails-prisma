@@ -1,58 +1,21 @@
-name: API
+name: CI
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
 
 jobs:
-  test:
+  main:
     runs-on: ubuntu-latest
-
-    env:
-      TOKEN_SECRET: secret
-      GITHUB_CLIENT_ID: clientId
-      GITHUB_CLIENT_SECRET: clientSecret
-      GITHUB_CALLBACK_URL: http://localhost:3333/auth/github/callback
-      SPA_URL: http://localhost:4200
-      COOKIE_DOMAIN: localhost
-      NX_API_URL: http://localhost:3333
-
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v2
         with:
-          node-version: 18
-          cache: 'npm'
+          fetch-depth: 0
+      - uses: nrwl/nx-set-shas@v3
+      - run: npm ci
 
-      - name: Run npm intsall
-        run: npm install
-
-      - name: Run tests
-        env:
-          TEST_DATABASE_URL: 'postgresql://user:password@localhost:${{ job.services.postgres.ports[5432] }}/database?schema=public'
-        run: npm run actions:codeCoverage
-
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: api
-
-    services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: cocktails-db-testing
-          PGDATA: /data/postgres
-        ports:
-          - 5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+      - run: npx nx format:check
+      - run: npx nx affected --target=lint --parallel=3
+      - run: npx nx affected --target=test --parallel=3 --configuration=ci
+      - run: npx nx affected --target=build --parallel=3
