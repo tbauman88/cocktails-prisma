@@ -8,7 +8,8 @@
     "docker:down": "docker-compose down",
     "start:prod": "node dist/apps/api/main.js",
     "start:migrate:prod": "prisma migrate deploy && npm run start:prod",
-    "actions:codeCoverage": "nx run test:api --codeCoverage --verbose"
+    "test:api": "NODE_ENV=test nx test api",
+    "test:client": "NODE_ENV=test nx test client"
   },
   "private": true,
   "prisma": {
