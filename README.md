@@ -1,7 +1,6 @@
 # Cocktails
 
-[![Client](https://github.com/tbauman88/cocktails/actions/workflows/client.yml/badge.svg)](https://github.com/tbauman88/cocktails/actions/workflows/client.yml)
-[![API](https://github.com/tbauman88/cocktails/actions/workflows/api.yml/badge.svg)](https://github.com/tbauman88/cocktails/actions/workflows/api.yml)
+[![API](https://github.com/tbauman88/cocktails-prisma/actions/workflows/api.yml/badge.svg)](https://github.com/tbauman88/cocktails-prisma/actions/workflows/api.yml)
 
 This application will be the hub to find your next go-to cocktail.
 
