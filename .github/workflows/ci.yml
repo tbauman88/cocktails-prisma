@@ -44,14 +44,22 @@ jobs:
           TEST_DATABASE_URL: 'postgresql://user:password@localhost:5432/database?schema=public'
         run: npx nx run api:test --coverage --verbose
 
-      - name: Run Client tests
-        run: npx nx run client:test --coverage --verbose
-
-      - name: Upload coverage reports to Codecov
+      - name: Upload api coverage reports to codecov
         uses: codecov/codecov-action@v2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage/apps/client/coverage-final.json, ./coverage/apps/api/coverage-final.json
+          flags: api
+          files: ./coverage/apps/api/coverage-final.json
+
+      - name: Run Client tests
+        run: npx nx run client:test --coverage --verbose
+
+      - name: Upload client coverage reports to codecov
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: client
+          files: ./coverage/apps/client/coverage-final.json
 
     services:
       postgres:
