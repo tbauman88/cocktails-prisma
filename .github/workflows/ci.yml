@@ -51,7 +51,7 @@ jobs:
         uses: codecov/codecov-action@v2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage/apps/client/coverage-final.json
+          files: ./coverage/apps/client/coverage-final.json, ./coverage/apps/api/coverage-final.json
 
     services:
       postgres:
