@@ -11,7 +11,7 @@ import {
   Query
 } from '@nestjs/common'
 import { Prisma, User } from '@prisma/client'
-import { UserService } from '@services/user.service'
+import { UserService } from '../services/user.service'
 
 @Controller()
 export class UserController {

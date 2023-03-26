@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common'
 import { Ingredient } from '@prisma/client'
-import { IngredientService } from '@services/ingredient.service'
+import { IngredientService } from '../services/ingredient.service'
 
 @Controller()
 export class IngredientController {

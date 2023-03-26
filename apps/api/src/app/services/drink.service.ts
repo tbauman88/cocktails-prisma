@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { Drink, Prisma } from '@prisma/client'
-import { PrismaService } from '@services/prisma.service'
+import { PrismaService } from './prisma.service'
 
 type DrinkWithIngredients = Drink & {
   ingredients: {
@@ -72,13 +72,17 @@ export class DrinkService {
 
   async show(
     drinkWhereUniqueInput: Prisma.DrinkWhereUniqueInput
-  ): Promise<DrinkWithIngredients | string> {
+  ): Promise<DrinkWithIngredients | NotFoundException | string> {
     const drink = await this.prisma.drink.findUnique({
       where: drinkWhereUniqueInput,
       include: this.includeIngredients
     })
 
-    if (!drink) return `Drink with ID ${drinkWhereUniqueInput.id} not found.`
+    if (!drink) {
+      throw new NotFoundException(
+        `Drink with ID ${drinkWhereUniqueInput.id} not found.`
+      )
+    }
 
     if (drink.deletedAt) return `${drink.name} drink has been deleted.`
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { Ingredient, Prisma } from '@prisma/client'
-import { PrismaService } from '@services/prisma.service'
+import { PrismaService } from './prisma.service'
 
 type IngredientWithDrinks = Ingredient & {
   drinks: {

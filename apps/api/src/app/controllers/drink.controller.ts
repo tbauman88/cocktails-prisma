@@ -3,13 +3,14 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Post,
   Put,
   Query
 } from '@nestjs/common'
 import { Drink, Prisma } from '@prisma/client'
-import { CreateDrinkDto, DrinkService } from '@services/drink.service'
+import { DrinkService, CreateDrinkDto } from '../services/drink.service'
 
 @Controller()
 export class DrinkController {
@@ -28,12 +29,14 @@ export class DrinkController {
       skip: Number(skip) || undefined,
       take: Number(take) || undefined,
       orderBy: { name: orderBy },
-      where: { ...or, deletedAt: null }
+      where: { ...or, NOT: [{ deletedAt: null }] }
     })
   }
 
   @Get('drink/:id')
-  async getDrinkById(@Param('id') id: string): Promise<Drink | string> {
+  async getDrinkById(
+    @Param('id') id: string
+  ): Promise<Drink | NotFoundException | string> {
     return this.drinkService.show({ id })
   }
 

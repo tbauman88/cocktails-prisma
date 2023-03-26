@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { UserController } from '@controllers/user.controller'
-import { UserService } from '@services/user.service'
-import { PrismaService } from '@services/prisma.service'
 import { faker } from '@faker-js/faker'
 import { Role, User } from '@prisma/client'
+import { PrismaService } from '../../services/prisma.service'
+import { UserService } from '../../services/user.service'
+import { UserController } from '../../controllers/user.controller'
 
 describe('UserController', () => {
   let controller: UserController
