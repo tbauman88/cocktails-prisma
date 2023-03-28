@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   Post,
   Put,
@@ -42,7 +43,7 @@ export class UserController {
   async updateUser(
     @Param('id') id: string,
     @Body() data: Prisma.UserUpdateInput
-  ): Promise<User> {
+  ): Promise<User | NotFoundException> {
     return this.userService.update({ where: { id }, data })
   }
 

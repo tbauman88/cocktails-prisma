@@ -11,7 +11,7 @@ node_modules
 .env
 dist
 coverage
-.env
+.env.test
 prisma/seed.ts
 
 # IDEs and editors

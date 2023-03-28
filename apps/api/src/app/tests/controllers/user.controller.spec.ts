@@ -4,6 +4,16 @@ import { Role, User } from '@prisma/client'
 import { PrismaService } from '../../services/prisma.service'
 import { UserService } from '../../services/user.service'
 import { UserController } from '../../controllers/user.controller'
+import prisma from '../utils/client'
+import { NotFoundException } from '@nestjs/common'
+
+const createUser = async () =>
+  await prisma.user.create({
+    data: {
+      name: faker.name.fullName(),
+      email: faker.internet.exampleEmail()
+    }
+  })
 
 describe('UserController', () => {
   let controller: UserController
@@ -19,70 +29,91 @@ describe('UserController', () => {
     service = module.get<UserService>(UserService)
   })
 
-  const users: Pick<User, 'id' | 'name' | 'email' | 'role'>[] = [
-    {
-      id: faker.datatype.uuid(),
-      name: faker.name.fullName({ firstName: 'Steve', lastName: 'French' }),
-      email: faker.internet.exampleEmail('Steve'),
-      role: Role.USER
-    },
-    {
-      id: faker.datatype.uuid(),
-      name: faker.name.fullName({ firstName: 'Jenn', sex: 'female' }),
-      email: faker.internet.exampleEmail('Jenn'),
-      role: Role.USER
-    }
-  ]
-
-  const [user] = users
-
-  it('should return an array of users', async () => {
-    jest.spyOn(service, 'index').mockResolvedValue(users as User[])
-
-    expect(await controller.getUsers()).toEqual(users)
+  afterAll(async () => {
+    const deleteUser = prisma.user.deleteMany()
+    await prisma.$transaction([deleteUser])
+    prisma.$disconnect()
   })
 
-  it('should return a user', async () => {
-    jest.spyOn(service, 'show').mockResolvedValue(user as User)
+  describe('index', () => {
+    it('should return an array of users', async () => {
+      const users = [
+        { name: faker.name.fullName(), email: faker.internet.exampleEmail() },
+        { name: faker.name.fullName(), email: faker.internet.exampleEmail() }
+      ]
 
-    expect(await controller.getUserById(user.id)).toEqual(user)
-  })
+      await prisma.user.createMany({ data: users })
 
-  it('should create a user', async () => {
-    jest.spyOn(service, 'create').mockImplementation()
-    const user: Pick<User, 'name' | 'email'> = {
-      name: faker.name.fullName(),
-      email: faker.internet.exampleEmail()
-    }
+      jest.spyOn(service, 'index').mockResolvedValue(users as User[])
 
-    await controller.createUser(user)
-
-    expect(await service.create).toHaveBeenCalledWith({
-      name: user.name,
-      email: user.email
+      expect(await controller.getUsers()).toEqual(users)
     })
   })
 
-  it('should update a user', async () => {
-    const updatedUser = { ...user, role: Role.ADMIN }
-    jest.spyOn(service, 'update').mockResolvedValue(updatedUser as User)
+  describe('show', () => {
+    it('should return a user', async () => {
+      const user = await createUser()
+      jest.spyOn(service, 'show').mockResolvedValue(user as User)
 
-    const result = await controller.updateUser(user.id, updatedUser)
-
-    expect(result).toEqual(updatedUser)
-    expect(service.update).toHaveBeenCalledWith({
-      where: { id: user.id },
-      data: updatedUser
+      expect(await controller.getUserById(user.id)).toEqual(user)
     })
   })
 
-  it('should delete a user', async () => {
-    jest.spyOn(service, 'delete').mockResolvedValue(user as User)
+  describe('create', () => {
+    it('should create a user', async () => {
+      jest.spyOn(service, 'create').mockImplementation()
+      const user: Pick<User, 'name' | 'email'> = {
+        name: faker.name.fullName(),
+        email: faker.internet.exampleEmail()
+      }
 
-    expect(await controller.deleteUser(user.id)).toEqual(
-      expect.objectContaining({
-        message: `User: ${user.id} was deleted successfully`
+      await controller.createUser(user)
+
+      expect(await service.create).toHaveBeenCalledWith({
+        name: user.name,
+        email: user.email
       })
-    )
+    })
+  })
+
+  describe('update', () => {
+    it('should update a user', async () => {
+      const user = await createUser()
+      const updatedUser = { ...user, role: Role.ADMIN }
+
+      jest
+        .spyOn(service, 'update')
+        .mockResolvedValue({ ...user, role: Role.ADMIN })
+
+      expect(await controller.updateUser(user.id, updatedUser)).toEqual(
+        updatedUser
+      )
+    })
+
+    it('should throw an error if the user does not exist', async () => {
+      jest
+        .spyOn(service, 'update')
+        .mockRejectedValueOnce(
+          new NotFoundException('Record to update does not exist.')
+        )
+
+      await expect(controller.updateUser('123', {})).rejects.toThrow(
+        NotFoundException
+      )
+    })
+  })
+
+  describe('delete', () => {
+    it('should delete a user', async () => {
+      const user = await createUser()
+
+      jest.spyOn(service, 'delete').mockResolvedValue(user as User)
+
+      expect(await controller.deleteUser(user.id)).toEqual(
+        expect.objectContaining({
+          message: `User: ${user.id} was deleted successfully`
+        })
+      )
+    })
   })
 })

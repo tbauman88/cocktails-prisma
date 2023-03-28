@@ -1,4 +1,4 @@
-import { Body, Injectable } from '@nestjs/common'
+import { Body, Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma, User } from '@prisma/client'
 import { PrismaService } from './prisma.service'
 
@@ -41,8 +41,14 @@ export class UserService {
   async update(params: {
     where: Prisma.UserWhereUniqueInput
     data: Prisma.UserUpdateInput
-  }): Promise<User> {
+  }): Promise<User | NotFoundException> {
     const { where, data } = params
+    const existingUser = await this.prisma.user.findUnique({ where })
+
+    if (!existingUser) {
+      throw new NotFoundException('Record to update does not exist.')
+    }
+
     return this.prisma.user.update({ data, where })
   }
 
