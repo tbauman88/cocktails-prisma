@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { Drink, Prisma } from '@prisma/client'
 import { PrismaService } from './prisma.service'
 
-type DrinkWithIngredients = Drink & {
+export type DrinkWithIngredients = Drink & {
   ingredients: {
     name: string
     amount: string
