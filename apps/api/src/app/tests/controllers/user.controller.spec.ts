@@ -30,8 +30,6 @@ describe('UserController', () => {
   })
 
   afterAll(async () => {
-    const deleteUser = prisma.user.deleteMany()
-    await prisma.$transaction([deleteUser])
     prisma.$disconnect()
   })
 

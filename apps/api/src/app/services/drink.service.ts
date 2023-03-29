@@ -84,7 +84,7 @@ export class DrinkService {
       )
     }
 
-    if (drink.deletedAt) return `${drink.name} drink has been deleted.`
+    if (drink.deletedAt) return `${drink.name} has been deleted.`
 
     return {
       ...drink,
@@ -131,8 +131,17 @@ export class DrinkService {
     })
   }
 
-  async delete(where: Prisma.DrinkWhereUniqueInput): Promise<Drink> {
-    return this.prisma.drink.delete({ where })
+  async delete(where: Prisma.DrinkWhereUniqueInput): Promise<string> {
+    const drink = await this.prisma.drink.findUnique({ where })
+
+    if (drink.deletedAt) return `${drink.name} has been deleted.`
+
+    await this.prisma.drink.update({
+      where,
+      data: { deletedAt: new Date() }
+    })
+
+    return 'Drink deleted successfully.'
   }
 
   private async upsertIngredients(

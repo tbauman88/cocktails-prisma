@@ -54,7 +54,7 @@ export class DrinkController {
   }
 
   @Delete('drink/:id')
-  async deleteDrink(@Param('id') id: string): Promise<Drink> {
+  async deleteDrink(@Param('id') id: string): Promise<string> {
     return this.drinkService.delete({ id })
   }
 }
