@@ -1,12 +1,34 @@
 name: CI
+
+env:
+  TEST_DATABASE_URL: ${{ vars.CI_DATEBASE }}
+
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   main:
     runs-on: ubuntu-latest
+
+    services:
+      db_test:
+        image: postgres:13
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: cocktails-ci
+          TEST_DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+          PGDATA: /data/postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v2
@@ -14,6 +36,9 @@ jobs:
           fetch-depth: 0
 
       - uses: nrwl/nx-set-shas@v3
+
+      - run: |
+          echo ${{ env.TEST_DATABASE_URL }}
 
       - name: Cache node modules
         id: cache-npm
@@ -41,8 +66,8 @@ jobs:
 
       - name: Run API tests
         env:
-          TEST_DATABASE_URL: 'postgresql://user:password@localhost:5432/database?schema=public'
-        run: npx nx run api:test --coverage --verbose
+          TEST_DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+        run: NODE_ENV=test npx nx run api:test --coverage --verbose
 
       - name: Upload api coverage reports to codecov
         uses: codecov/codecov-action@v2
@@ -60,19 +85,3 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: client
           files: ./coverage/apps/client/coverage-final.json
-
-    services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: cocktails-db-testing
-          PGDATA: /data/postgres
-        ports:
-          - 5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
