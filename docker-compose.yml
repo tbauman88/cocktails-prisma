@@ -39,17 +39,17 @@ services:
     networks:
       - cocktails
 
-  # api:
-  #   image: api
-  #   environment:
-  #     DATABASE_URL: postgresql://tylerbauman:password@db:5432/cocktails?schema=public
-  #   ports:
-  #     - '3333:3333'
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #   networks:
-  #     - cocktails
+  api:
+    image: api
+    environment:
+      DATABASE_URL: postgresql://tylerbauman:password@db:5432/cocktails?schema=public
+    ports:
+      - '3333:3333'
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - cocktails
 
 networks:
   cocktails:

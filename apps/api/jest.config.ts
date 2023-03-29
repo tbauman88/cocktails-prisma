@@ -1,5 +1,6 @@
-/* eslint-disable */
-export default {
+import type { Config } from 'jest'
+
+const config: Config = {
   displayName: 'api',
   preset: '../../jest.preset.js',
   verbose: true,
@@ -11,3 +12,5 @@ export default {
   coverageDirectory: '../../coverage/apps/api',
   coverageReporters: ['clover', 'json', 'lcov', ['text', { skipFull: true }]]
 }
+
+export default config
