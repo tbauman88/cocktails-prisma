@@ -33,9 +33,6 @@ jobs:
 
       - uses: nrwl/nx-set-shas@v3
 
-      - run: |
-          echo ${{ env.TEST_DATABASE_URL }}
-
       - name: Cache node modules
         id: cache-npm
         uses: actions/cache@v3
