@@ -5,7 +5,7 @@ import {
   DrinkWithIngredients
 } from '../../services/drink.service'
 import { DrinkController } from '../../controllers/drink.controller'
-import prisma from '../utils/client'
+import prisma from '../../utils/client'
 import { Drink, User } from '@prisma/client'
 import { faker } from '@faker-js/faker'
 

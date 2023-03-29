@@ -4,7 +4,7 @@ import { Role, User } from '@prisma/client'
 import { PrismaService } from '../../services/prisma.service'
 import { UserService } from '../../services/user.service'
 import { UserController } from '../../controllers/user.controller'
-import prisma from '../utils/client'
+import prisma from '../../utils/client'
 import { NotFoundException } from '@nestjs/common'
 
 const createUser = async () =>
