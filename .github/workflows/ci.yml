@@ -62,7 +62,7 @@ jobs:
 
       - name: Run API tests
         env:
-          TEST_DATABASE_URL: 'postgresql://tylerbauman:password@postgres:${{ job.services.postgres.ports[5432] }}/cocktails-ci?schema=public'
+          TEST_DATABASE_URL: 'postgresql://user:password@postgres:${{ job.services.postgres.ports[5432] }}/cocktails-ci?schema=public'
         run: NODE_ENV=test npx nx run api:test --coverage --verbose
 
       - name: Upload api coverage reports to codecov
