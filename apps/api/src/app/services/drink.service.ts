@@ -53,11 +53,12 @@ export class DrinkService {
     orderBy?: Prisma.UserOrderByWithRelationInput
   }): Promise<Drink[]> {
     const { skip, take, cursor, where, orderBy } = params
+
     const drinks = await this.prisma.drink.findMany({
       skip,
       take,
       cursor,
-      where,
+      where: { ...where, deletedAt: null },
       orderBy,
       include: this.includeIngredients
     })
