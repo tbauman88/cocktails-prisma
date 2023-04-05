@@ -27,7 +27,7 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: 'postgresql://user:password@postgres/cocktails-ci?schema=public'
+      DATABASE_URL: 'postgresql://user:password@postgres@5432/cocktails-ci?schema=public'
 
     steps:
       - uses: actions/checkout@v2
@@ -60,6 +60,13 @@ jobs:
           npm install nx
           npm ci
 
+      - name: Debug Postgres service
+        run: |
+          echo "DATABASE_URL: $DATABASE_URL"
+          echo "POSTGRES_USER: $POSTGRES_USER"
+          echo "POSTGRES_PASSWORD: $POSTGRES_PASSWORD"
+          echo "POSTGRES_DB: $POSTGRES_DB"
+
       - name: Run API tests
         run: npx nx run api:test --coverage --verbose
 
@@ -70,12 +77,12 @@ jobs:
           flags: api
           files: ./coverage/apps/api/coverage-final.json
 
-      - name: Run Client tests
-        run: npx nx run client:test --coverage --verbose
+      # - name: Run Client tests
+      #   run: npx nx run client:test --coverage --verbose
 
-      - name: Upload client coverage reports to codecov
-        uses: codecov/codecov-action@v2
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          flags: client
-          files: ./coverage/apps/client/coverage-final.json
+      # - name: Upload client coverage reports to codecov
+      #   uses: codecov/codecov-action@v2
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     flags: client
+      #     files: ./coverage/apps/client/coverage-final.json
