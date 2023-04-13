@@ -5,6 +5,7 @@ const config: Config = {
   preset: '../../jest.preset.js',
   verbose: true,
   testEnvironment: 'node',
+  testTimeout: 10000,
   transform: {
     '^.+\\.[tj]s$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }]
   },

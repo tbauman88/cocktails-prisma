@@ -13,13 +13,13 @@ jobs:
     services:
       postgres:
         image: postgres:13
+        ports:
+          - 5433:5432
         env:
           POSTGRES_USER: user
           POSTGRES_PASSWORD: password
           POSTGRES_DB: cocktails-ci
           PGDATA: /data/postgres
-        ports:
-          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -27,7 +27,7 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: 'postgresql://user:password@postgres@5432/cocktails-ci?schema=public'
+      DATABASE_URL: 'postgresql://user:password@localhost:5432/cocktails-ci'
 
     steps:
       - uses: actions/checkout@v2
@@ -52,23 +52,18 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: 16.x
           cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
 
       - name: Install dependencies
         run: |
           npm install nx
           npm ci
 
-      - name: Debug Postgres service
-        run: |
-          echo "DATABASE_URL: $DATABASE_URL"
-          echo "POSTGRES_USER: $POSTGRES_USER"
-          echo "POSTGRES_PASSWORD: $POSTGRES_PASSWORD"
-          echo "POSTGRES_DB: $POSTGRES_DB"
+      - run: npm run db:push
 
       - name: Run API tests
-        run: npx nx run api:test --coverage --verbose
+        run: npx nx run api:test
 
       - name: Upload api coverage reports to codecov
         uses: codecov/codecov-action@v2
@@ -76,6 +71,11 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: api
           files: ./coverage/apps/api/coverage-final.json
+
+      - name: Notify build status
+        if: always() # Notify even if previous steps fail
+        run: echo "Build ${{ job.status }}" # Add notification step
+
 
       # - name: Run Client tests
       #   run: npx nx run client:test --coverage --verbose

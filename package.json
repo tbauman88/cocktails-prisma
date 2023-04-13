@@ -8,7 +8,7 @@
     "docker:down": "docker-compose down",
     "start:prod": "node dist/apps/api/main.js",
     "start:migrate:prod": "prisma migrate deploy && npm run start:prod",
-    "test:api": "NODE_ENV=test nx test api",
+    "test:api": "NODE_ENV=test nx run api:test",
     "test:client": "NODE_ENV=test nx test client",
     "test:migrate": "dotenv -e .env.test -- npx prisma migrate deploy"
   },
