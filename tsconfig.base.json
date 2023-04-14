@@ -16,8 +16,8 @@
     "baseUrl": ".",
     "paths": {
       "@api/*": ["apps/api/src/app/*"],
-      "@services/*": ["apps/api/src/app/services/*"],
-      "@controllers/*": ["apps/api/src/app/controllers/*"]
+      "@controllers/*": ["apps/api/src/app/controllers/*"],
+      "@services/*": ["apps/api/src/app/services/*"]
     }
   },
   "exclude": ["node_modules", "tmp"]

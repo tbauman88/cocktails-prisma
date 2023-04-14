@@ -2,24 +2,30 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-  workflow_dispatch:
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  main:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        node: ['16.x', '18.x', 19]
+        os: [ubuntu-latest]
+      fail-fast: false
 
     services:
       postgres:
         image: postgres:13
-        ports:
-          - 5433:5432
         env:
           POSTGRES_USER: user
           POSTGRES_PASSWORD: password
           POSTGRES_DB: cocktails-ci
           PGDATA: /data/postgres
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -27,14 +33,11 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: 'postgresql://user:password@localhost:5432/cocktails-ci'
+      DATABASE_URL: 'postgresql://user:password@postgres:5432/cocktails-ci'
 
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - uses: nrwl/nx-set-shas@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Cache node modules
         id: cache-npm
@@ -49,21 +52,19 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
-      - name: Use Node.js
-        uses: actions/setup-node@v2
-        with:
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
-
       - name: Install dependencies
-        run: |
-          npm install nx
-          npm ci
+        run: npm ci
 
-      - run: npm run db:push
+      - name: Format check
+        run: npx nx format:check
+
+      - name: Prepare env
+        run: cp .env.example .env
 
       - name: Run API tests
-        run: npx nx run api:test
+        env:
+          DATEBASE_URL: ${{env.DATABASE_URL}}
+        run: NX_BRANCH=ci npx nx run api:test --verbose --configuration=ci
 
       - name: Upload api coverage reports to codecov
         uses: codecov/codecov-action@v2
@@ -73,16 +74,5 @@ jobs:
           files: ./coverage/apps/api/coverage-final.json
 
       - name: Notify build status
-        if: always() # Notify even if previous steps fail
-        run: echo "Build ${{ job.status }}" # Add notification step
-
-
-      # - name: Run Client tests
-      #   run: npx nx run client:test --coverage --verbose
-
-      # - name: Upload client coverage reports to codecov
-      #   uses: codecov/codecov-action@v2
-      #   with:
-      #     token: ${{ secrets.CODECOV_TOKEN }}
-      #     flags: client
-      #     files: ./coverage/apps/client/coverage-final.json
+        if: always()
+        run: echo "Build ${{ job.status }}"
