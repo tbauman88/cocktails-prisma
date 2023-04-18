@@ -6,11 +6,8 @@
 import { Logger, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 
-import { AppModule } from '@api/app.module'
-import { PrismaService } from '@api/services/prisma.service'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { AppModule } from '../src/app/app.module'
+import { PrismaService } from '../src/app/services/prisma.service'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)

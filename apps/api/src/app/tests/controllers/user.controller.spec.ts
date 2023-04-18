@@ -1,17 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { faker } from '@faker-js/faker'
-import { Role, User } from '@prisma/client'
+import { Role } from '@prisma/client'
 import { PrismaService } from '../../services/prisma.service'
 import { UserService } from '../../services/user.service'
 import { UserController } from '../../controllers/user.controller'
-import { HttpStatus, INestApplication, NotFoundException } from '@nestjs/common'
+import { HttpStatus, INestApplication } from '@nestjs/common'
 import request from 'supertest'
 
 describe('UserController', () => {
   let app: INestApplication
-
-  let controller: UserController
-  let service: UserService
   let prisma: PrismaService
 
   beforeAll(async () => {
@@ -23,7 +20,7 @@ describe('UserController', () => {
     app = module.createNestApplication()
     await app.init()
 
-    prisma = module.get<PrismaService>(PrismaService) // Get an instance of your Prisma service
+    prisma = module.get<PrismaService>(PrismaService)
   })
 
   afterAll(async () => {
@@ -33,15 +30,7 @@ describe('UserController', () => {
     prisma.$disconnect()
   })
 
-  const createUser = async () =>
-    await prisma.user.create({
-      data: {
-        name: faker.name.fullName(),
-        email: faker.internet.exampleEmail()
-      }
-    })
-
-  describe('index', () => {
+  describe.only('index', () => {
     it('should return an array of users', async () => {
       const users = [
         { name: faker.name.fullName(), email: faker.internet.exampleEmail() },
@@ -50,9 +39,9 @@ describe('UserController', () => {
 
       await prisma.user.createMany({ data: users })
 
-      const response = await request(app.getHttpServer()).get('/users')
-
-      expect(response.status).toEqual(HttpStatus.OK)
+      const response = await request(app.getHttpServer())
+        .get('/users')
+        .expect(HttpStatus.OK)
 
       expect(response.body).toEqual(
         expect.arrayContaining([
@@ -69,71 +58,80 @@ describe('UserController', () => {
     })
   })
 
-  describe.skip('show', () => {
+  describe('show', () => {
     it('should return a user', async () => {
       const user = await createUser()
 
-      jest.spyOn(service, 'show').mockResolvedValue(user as User)
+      const response = await request(app.getHttpServer())
+        .get(`/user/${user.id}`)
+        .expect(HttpStatus.OK)
 
-      expect(await controller.getUserById(user.id)).toEqual(user)
+      expect(response.body).toEqual(expect.objectContaining({ id: user.id }))
     })
   })
 
-  describe.skip('create', () => {
+  describe('create', () => {
     it('should create a user', async () => {
-      jest.spyOn(service, 'create').mockImplementation()
-      const user: Pick<User, 'name' | 'email'> = {
+      const user = {
         name: faker.name.fullName(),
         email: faker.internet.exampleEmail()
       }
 
-      await controller.createUser(user)
+      const response = await request(app.getHttpServer())
+        .post(`/user/signup`)
+        .send(user)
+        .expect(HttpStatus.CREATED)
 
-      expect(await service.create).toHaveBeenCalledWith({
-        name: user.name,
-        email: user.email
-      })
+      expect(response.body).toEqual(
+        expect.objectContaining({ name: user.name, email: user.email })
+      )
     })
   })
 
-  describe.skip('update', () => {
+  describe('update', () => {
     it('should update a user', async () => {
       const user = await createUser()
-      const updatedUser = { ...user, role: Role.ADMIN }
 
-      jest
-        .spyOn(service, 'update')
-        .mockResolvedValue({ ...user, role: Role.ADMIN })
+      const response = await request(app.getHttpServer())
+        .put(`/user/${user.id}`)
+        .send({ role: Role.ADMIN })
+        .expect(HttpStatus.OK)
 
-      expect(await controller.updateUser(user.id, updatedUser)).toEqual(
-        updatedUser
+      expect(response.body).toEqual(
+        expect.objectContaining({ role: Role.ADMIN })
       )
     })
 
     it('should throw an error if the user does not exist', async () => {
-      jest
-        .spyOn(service, 'update')
-        .mockRejectedValueOnce(
-          new NotFoundException('Record to update does not exist.')
-        )
+      const response = await request(app.getHttpServer())
+        .put(`/user/123`)
+        .send({ role: Role.ADMIN })
+        .expect(HttpStatus.NOT_FOUND)
 
-      await expect(controller.updateUser('123', {})).rejects.toThrow(
-        NotFoundException
-      )
+      expect(response.body.message).toEqual('Record to update does not exist.')
     })
   })
 
-  describe.skip('delete', () => {
+  describe('delete', () => {
     it('should delete a user', async () => {
       const user = await createUser()
 
-      jest.spyOn(service, 'delete').mockResolvedValue(user as User)
+      const response = await request(app.getHttpServer())
+        .delete(`/user/${user.id}`)
+        .send({ role: Role.ADMIN })
+        .expect(HttpStatus.OK)
 
-      expect(await controller.deleteUser(user.id)).toEqual(
-        expect.objectContaining({
-          message: `User: ${user.id} was deleted successfully`
-        })
+      expect(response.body.message).toEqual(
+        `User: ${user.id} was deleted successfully`
       )
     })
   })
+
+  const createUser = async () =>
+    await prisma.user.create({
+      data: {
+        name: faker.name.fullName(),
+        email: faker.internet.exampleEmail()
+      }
+    })
 })

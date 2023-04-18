@@ -59,12 +59,12 @@ jobs:
         run: npx nx format:check
 
       - name: Prepare env
-        run: cp .env.example .env
+        run: cp .env.example .env.test
 
       - name: Run API tests
         env:
           DATEBASE_URL: ${{env.DATABASE_URL}}
-        run: NX_BRANCH=ci npx nx run api:test --verbose --configuration=ci
+        run: NODE_ENV=test NX_BRANCH=ci npx nx run api:test --verbose --configuration=ci --clearCache --setupFile={projectRoot}/apps/api/jest-setup.ts
 
       - name: Upload api coverage reports to codecov
         uses: codecov/codecov-action@v2
