@@ -30,7 +30,7 @@ describe('UserController', () => {
     prisma.$disconnect()
   })
 
-  describe.only('index', () => {
+  describe('index', () => {
     it('should return an array of users', async () => {
       const users = [
         { name: faker.name.fullName(), email: faker.internet.exampleEmail() },
@@ -118,7 +118,6 @@ describe('UserController', () => {
 
       const response = await request(app.getHttpServer())
         .delete(`/user/${user.id}`)
-        .send({ role: Role.ADMIN })
         .expect(HttpStatus.OK)
 
       expect(response.body.message).toEqual(

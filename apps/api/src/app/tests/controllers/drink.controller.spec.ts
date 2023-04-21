@@ -5,26 +5,12 @@ import {
   DrinkWithIngredients
 } from '../../services/drink.service'
 import { DrinkController } from '../../controllers/drink.controller'
-import { Drink } from '@prisma/client'
 import { faker } from '@faker-js/faker'
-import { NotFoundException } from '@nestjs/common'
+import { HttpStatus, INestApplication } from '@nestjs/common'
+import request from 'supertest'
 
-const createDrinkForUser = async (prisma) => {
-  const user = await prisma.user.create({
-    data: {
-      email: faker.internet.exampleEmail(),
-      name: faker.name.fullName()
-    }
-  })
-
-  await prisma.drink.create({
-    data: { name: 'Manhattan', user: { connect: { id: user.id } } }
-  })
-}
-
-describe.skip('DrinkController', () => {
-  let controller: DrinkController
-  let service: DrinkService
+describe('DrinkController', () => {
+  let app: INestApplication
   let prisma: PrismaService
 
   beforeEach(async () => {
@@ -33,8 +19,9 @@ describe.skip('DrinkController', () => {
       providers: [DrinkService, PrismaService]
     }).compile()
 
-    controller = module.get<DrinkController>(DrinkController)
-    service = module.get<DrinkService>(DrinkService)
+    app = module.createNestApplication()
+    await app.init()
+
     prisma = module.get<PrismaService>(PrismaService)
   })
 
@@ -47,19 +34,25 @@ describe.skip('DrinkController', () => {
 
   describe('index', () => {
     it('should return an array of drinks', async () => {
-      await createDrinkForUser(prisma)
+      await createDrinkForUser()
 
-      const drinks = await prisma.drink.findMany()
+      const [drink] = await prisma.drink.findMany()
 
-      jest.spyOn(service, 'index').mockResolvedValue(drinks as Drink[])
+      const response = await request(app.getHttpServer())
+        .get('/drinks')
+        .expect(HttpStatus.OK)
 
-      expect(await controller.drinks()).toEqual(drinks)
+      expect(response.body).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: drink.name, id: drink.id })
+        ])
+      )
     })
   })
 
   describe('show', () => {
     it('should return a drink', async () => {
-      await createDrinkForUser(prisma)
+      await createDrinkForUser()
 
       const newDrink = await prisma.drink.findFirst()
 
@@ -68,33 +61,36 @@ describe.skip('DrinkController', () => {
         id: newDrink.id
       } as DrinkWithIngredients
 
-      jest.spyOn(service, 'show').mockResolvedValue(drink)
+      const response = await request(app.getHttpServer())
+        .get(`/drink/${drink.id}`)
+        .expect(HttpStatus.OK)
 
-      expect(await controller.getDrinkById(drink.id)).toEqual(drink)
+      expect(response.body).toEqual(expect.objectContaining({ id: drink.id }))
     })
 
     it('should throw an error if the drink does not exist', async () => {
-      jest
-        .spyOn(service, 'show')
-        .mockRejectedValueOnce(new NotFoundException('Drink not found.'))
+      const response = await request(app.getHttpServer())
+        .get(`/drink/123`)
+        .expect(HttpStatus.NOT_FOUND)
 
-      await expect(controller.getDrinkById('Drink A')).rejects.toThrow(
-        NotFoundException
-      )
+      expect(response.body.message).toEqual('Drink with ID 123 not found.')
     })
 
     it('should return message when drink has been deleted', async () => {
-      await createDrinkForUser(prisma)
+      await prisma.drink.deleteMany()
+      await createDrinkForUser({ deletedAt: new Date() })
+      const drink = await prisma.drink.findFirst()
 
-      const newDrink = await prisma.drink.findFirst()
+      await prisma.drink.update({
+        where: { id: drink.id },
+        data: { deletedAt: new Date() }
+      })
 
-      jest
-        .spyOn(service, 'show')
-        .mockResolvedValueOnce('Drink has been deleted.')
+      const response = await request(app.getHttpServer())
+        .get(`/drink/${drink.id}`)
+        .expect(HttpStatus.OK)
 
-      expect(await controller.getDrinkById(newDrink.id)).toEqual(
-        'Drink has been deleted.'
-      )
+      expect(response.text).toEqual(`${drink.name} has been deleted.`)
     })
   })
 
@@ -114,67 +110,70 @@ describe.skip('DrinkController', () => {
         ingredients: []
       }
 
-      const createDrink: Drink = {
-        id: faker.datatype.uuid(),
-        name: drink.name,
-        notes: drink.notes,
-        published: false,
-        saveCount: 0,
-        userId: user.id,
-        serves: 1,
-        directions: null,
-        deletedAt: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
+      const response = await request(app.getHttpServer())
+        .post(`/drink`)
+        .send(drink)
+        .expect(HttpStatus.CREATED)
 
-      jest.spyOn(service, 'create').mockResolvedValue(createDrink)
-
-      expect(await controller.createDrink(drink)).toEqual(createDrink)
+      expect(response.body).toEqual(expect.objectContaining(drink))
     })
   })
 
   describe('update', () => {
     it('should update a drink', async () => {
-      await createDrinkForUser(prisma)
+      await createDrinkForUser()
       const newDrink = await prisma.drink.findFirst()
 
-      const updateDrink = { published: true }
+      const response = await request(app.getHttpServer())
+        .put(`/drink/${newDrink.id}`)
+        .send({ published: true })
+        .expect(HttpStatus.OK)
 
-      jest
-        .spyOn(service, 'update')
-        .mockResolvedValue({ ...newDrink, ...updateDrink })
-
-      expect(await controller.updateDrink(newDrink.id, updateDrink)).toEqual({
-        ...newDrink,
-        ...updateDrink
-      })
+      expect(response.body).toEqual(
+        expect.objectContaining({ published: true })
+      )
     })
   })
 
   describe('delete', () => {
     it('should delete a drink', async () => {
-      await createDrinkForUser(prisma)
-      const newDrink = await prisma.drink.findFirst()
+      await createDrinkForUser()
+      const [_, drink] = await prisma.drink.findMany()
 
-      jest
-        .spyOn(service, 'delete')
-        .mockResolvedValue('Drink deleted successfully.')
+      const response = await request(app.getHttpServer())
+        .delete(`/drink/${drink.id}`)
+        .expect(HttpStatus.OK)
 
-      expect(await controller.deleteDrink(newDrink.id)).toEqual(
-        'Drink deleted successfully.'
-      )
+      expect(response.text).toEqual(`Drink deleted successfully.`)
     })
 
     it('should return drink already deleted message if drink has been deleted', async () => {
-      await createDrinkForUser(prisma)
-      const newDrink = await prisma.drink.findFirst()
+      await prisma.drink.deleteMany()
+      await createDrinkForUser({ deletedAt: new Date() })
+      const drink = await prisma.drink.findFirst()
 
-      jest.spyOn(service, 'delete').mockResolvedValue('Drink already deleted.')
+      const response = await request(app.getHttpServer())
+        .delete(`/drink/${drink.id}`)
+        .expect(HttpStatus.OK)
 
-      expect(await controller.deleteDrink(newDrink.id)).toEqual(
-        'Drink already deleted.'
-      )
+      expect(response.text).toEqual(`${drink.name} has been deleted.`)
     })
   })
+
+  const createDrinkForUser = async (extraData = {}) => {
+    const user = await prisma.user.create({
+      data: {
+        email: faker.internet.exampleEmail(),
+        name: faker.name.fullName()
+      }
+    })
+
+    await prisma.drink.create({
+      data: {
+        name: 'Manhattan',
+        user: { connect: { id: user.id } },
+        ...extraData
+      }
+    })
+  }
 })
